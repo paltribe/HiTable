@@ -8,6 +8,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { PAGE_TYPES, routePaths } from "@/components/utils/routes";
+import { HiArrowLeft } from "react-icons/hi";
 
 interface IZone {
   businessId: string;
@@ -29,12 +30,10 @@ function Zones() {
   const [loggedIn, setLoggedIn] = useState(false);
   const router = useRouter();
   const userDetail = useLogin(s=>s.userDetails);
-  console.log(userDetail.customRole?.[0]?.businessId);
   const { businessId, zoneId } = router.query as {
     businessId: string;
     zoneId: string;
   };
-console.log(time)
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
@@ -44,6 +43,8 @@ console.log(time)
         setTime(currTime);
       }, 10000); 
     }
+
+    /////////////////////////remo
 
     return () => {
       clearInterval(intervalId); // Cleanup the interval when component unmounts or toggle is turned off
@@ -65,12 +66,12 @@ console.log(time)
       console.log(businessId);
       result();
     }
-  }, [businessId]);
+  }, []);
 
   const result = async () => {
     try {
       const response = await axios.get(
-        `https://api.hipal.life/v1/zones/getAllZoneByWaiter?businessId=${businessId}&waiterId=${userDetails.userDetails.id}`
+        `https://api.hipal.life/v1/zones/getAllZoneByWaiter?businessId=${businessId}&waiterId=${userDetail.id}`
       );
       console.log(response.data.data);
       setZones(response.data.data);
@@ -82,7 +83,10 @@ console.log(time)
   return (
     <div className="bg-[#f5f5f5] min-h-screen pb-6">
       <div className="flex justify-between ml-[1.5rem] pt-[2rem]">
+        {/* <Link href={routePaths.Login(`${businessId}`)}><HiArrowLeft className="text-2xl" /></Link> */}
+        
         <Image width={68} height={25} src={HiPalLogo} alt="Hi Table Logo" />
+        
         <MdMenuOpen className="mr-[1.5rem] text-2xl" />
       </div>
       <div className="mx-[1.5rem] bg-white rounded-2xl pb-[0.5rem] border border-[#e1e1e1]/50 mb-6 mt-[1.5rem]">

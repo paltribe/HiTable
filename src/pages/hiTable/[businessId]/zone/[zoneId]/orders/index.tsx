@@ -23,10 +23,10 @@ function Orders() {
     result();
   }, []);
 
-  const handleAnimationComplete = () => {
-    router.back();
-    result();
-  };
+  // const handleAnimationComplete = () => {
+  //   router.back();
+  //   result();
+  // };
 
   const acceptOrder = async (id: string) => {
     try {
@@ -34,9 +34,13 @@ function Orders() {
         `https://api.hipal.life/v1/kitchens/waiterKot/update/${id}`
       );
       setOrderAccepted(true);
-      setTimeout(() => {
-        window.history.back();
-      }, 1000);
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+    }
+  };
+  const rejectOrder = async (id: string) => {
+    try {
+      await axios.put(`https://api.hipal.life/v1/kitchens/reject/Order/${id}`);
     } catch (error) {
       console.error("Failed to update order status:", error);
     }
@@ -68,33 +72,25 @@ function Orders() {
       <div className=" ml-6 mt-8 font-bold capitalize text-[#002D4B] text-[1rem] leading-[1.25rem]">
         Orders
       </div>
-      {isOrderAccepted ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <CookingAnimation
-            data={data}
-            onAnimationComplete={handleAnimationComplete}
-          />
-        </div>
-      ) : null}
       <div>
         {data.map((ele) => (
           <div
             key={ele.id}
-            className="bg-white mx-6 rounded-2xl mt-6 mb-[5rem]"
+            className="bg-white mx-6 rounded-2xl mt-6 mb-[1.5rem]"
           >
             <div className="flex justify-between pt-4 mx-4">
               <div className="flex flex-col">
-                <div className="font-[500] capitalize">T-21</div>
+                <div className="font-[500] capitalize">{ele.tableName}</div>
                 <div className="capitalize font-normal text-[#002D4B]/40 text-[0.875rem] mt-1 leading-[1rem]">
-                  {ele.customerName}
+                  {ele?.items?.[0].customerName}
                 </div>
               </div>
               <div className="flex flex-col">
                 <div className="text-right text-md font-[500] text-[#2C62F0]">
-                  {ele.time}
+                  {ele?.time}
                 </div>
                 <div className="capitalize font-normal mt-1 text-[#002D4B]/40 text-[0.875rem] leading-[1rem]">
-                  {ele.date}
+                  {ele?.date}
                 </div>
               </div>
             </div>
@@ -102,7 +98,7 @@ function Orders() {
             <div className="relative pt-2 pb-[4.875rem]">
               {ele.items.map((item, i) => (
                 <div
-                  key={item.dish.dishId + "dish" + i}
+                  key={item?.dish?.dishId + "dish" + i}
                   className="flex mx-4 mt-4"
                 >
                   <div className="w-[10%] font-[500]">{item?.dish?.qty} x</div>
@@ -119,11 +115,14 @@ function Orders() {
               ))}
 
               <div className="absolute inline-flex right-6 bottom-4">
-                <button className="text-md font-[500] text-[#2C62F0] py-1 px-6 rounded-2xl">
+                <button
+                  onClick={() => rejectOrder(ele?.id)}
+                  className="text-md font-[500] text-[#2C62F0] py-1 px-6 rounded-2xl"
+                >
                   Reject
                 </button>
                 <button
-                  onClick={() => acceptOrder(ele.id)}
+                  onClick={() => acceptOrder(ele?.id)}
                   className="active_on_bounce border border-[#2C62F0]  text-md font-[500] text-[#2C62F0] py-1 px-6 rounded-2xl"
                 >
                   Accept

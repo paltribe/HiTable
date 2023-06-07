@@ -33,9 +33,9 @@ interface IZone {
 
 const filterButtons = [
   {
-    name: "occupied",
+    name: "Active",
     Icon: MdAlarm,
-    text: "Occupied",
+    text: "Active",
   },
   {
     name: "Empty",
@@ -77,7 +77,7 @@ const classByStatus: { [key: string]: any } = {
     numberClasses:
       "absolute right-6 bottom-2 text-sm font-[500] text-[#2C62F0]",
   },
-  ["activate"]: {
+  ["active"]: {
     classNames:
       "relative h-[5.75rem] mx-6 mb-4 border border-[#e1e1e1]/50 rounded-xl bg-[#DBFFE2]",
     businessNameClasses:
@@ -117,7 +117,6 @@ function Table() {
   const setKitchenId = useLogin((s) => s.setKitchenId);
   const setTableData = useTable((s) => s.setTableData);
   const tableData = useTable((s) => s.tableData);
-  console.log(tableData);
 
   const router = useRouter();
 
@@ -157,21 +156,6 @@ function Table() {
     result();
   };
 
-  // const handleClickOutside = (event:any) => {
-  //   if (!searchRef?.current?.contains(event.target)) {
-  //     console.log("this is search ref", !searchRef?.current?.contains(event.target));
-  //     // setSearchOpen(false);
-  //     // setSearch("");
-  //     document?.activeElement?.blur(); // hides the keyboard on mobile devices
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   window.addEventListener("scroll", handleClickOutside);
-  //   return () => {
-  //     window.removeEventListener("scroll", handleClickOutside);
-  //   };
-  // }, []);
   useEffect(() => {
     result();
   }, []);
@@ -188,11 +172,11 @@ function Table() {
       `https://api.hipal.life/v1/kitchens?businessId=${businessId}`
     );
     const kitchenData = await kitchen.data;
-    const id = kitchenData?.[1]?.id
-    console.log(id)
+    const id = kitchenData?.[0]?.id;
+    console.log(id);
     setKitchenId(id);
   };
-  const handleTableClick = (tableData:any) => {
+  const handleTableClick = (tableData: any) => {
     setTableData(tableData);
   };
 
@@ -204,15 +188,15 @@ function Table() {
 
   return (
     <div className="bg-[#f5f5f5] pb-6 min-h-screen relative">
-      <Header businessId={businessId} zoneId={zoneId}>
-  <Image
-    className="mr-6"
-    width={68}
-    height={25}
-    src={HiPalLogo}
-    alt="Hi Table Logo"
-  />
-</Header>
+      <Header businessId={businessId} zoneId={zoneId} >
+        <Image
+          className="mr-6"
+          width={68}
+          height={25}
+          src={HiPalLogo}
+          alt="Hi Table Logo"
+        />
+      </Header>
       <div className="sticky top-0 z-50 bg-[#f5f5f5]">
         <div className="flex justify-between">
           <div
@@ -288,7 +272,7 @@ function Table() {
                 passHref
               >
                 <div
-                 onClick={() => handleTableClick(ele)}
+                  onClick={() => handleTableClick(ele)}
                   className={`${
                     classByStatus[ele?.status?.toLowerCase()]?.classNames
                   }`}
@@ -338,7 +322,7 @@ function Table() {
                         <MdOutlineDinnerDining
                           className={`right-[5.5rem] top-6 absolute text-[1rem] opacity-50`}
                         />
-                          <div
+                        <div
                           className={`absolute right-20 bottom-6 text-sm font-[500] text-[#2C62F0]`}
                         >
                           {ele?.totalDishQuantity < 10

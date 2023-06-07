@@ -5,7 +5,7 @@ import Clean from "@/components/atoms/status/clean";
 import Cooked from "@/components/atoms/status/cooked";
 import Paid from "@/components/atoms/status/paid";
 import Header from "@/components/molecules/header";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiSearch, HiX } from "react-icons/hi";
 import { MdCreditCard } from "react-icons/md";
 import { SiGoogleassistant } from "react-icons/si";
@@ -16,6 +16,9 @@ import HiPalLogo from "../../../../../../assets/svg/hipalLogoNew.svg";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { useLogin } from "@/components/store/useLogin";
+import { Howl, Howler } from "howler";
+import { useAlert } from "@/components/store/useAlert";
+import { set } from "lodash";
 
 const filterButtons = [
   {
@@ -48,21 +51,29 @@ interface IAlertData {
 }
 
 function Alert() {
-  const [data, setData] = useState<IAlertData[]>([]);
-  const [historyData, setHistoryData] = useState<IAlertData[]>([]);
+  const {
+    data,
+    historyData,
+    setData,
+    setHistoryData,
+    newAlertsCount,
+    setNewAlertsCount,
+  } = useAlert();
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [previousLength, setPreviousLength] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
   const [activeButton, setActiveButton] = useState("");
   const router = useRouter();
   const userDetail = useLogin((s) => s.userDetails);
+  const previousLengthRef = useRef(0);
 
   const { businessId, zoneId } = router.query as {
     businessId: string;
     zoneId: string;
   };
-  console.log(businessId, zoneId, userDetail.id);
+
+ 
+
 
   const handleOnclick = (str: string) => {
     str = activeButton.length === 0 ? str : "";
@@ -78,7 +89,6 @@ function Alert() {
   };
 
   const handleItemClick = async (alertId: string) => {
-    console.log(alertId);
     const response = await axios.put(
       `https://api.hipal.life/v1/kitchens/updateAlert/alert?alertId=${alertId}&businessId=${businessId}`
     );
@@ -89,25 +99,37 @@ function Alert() {
   const historyOnClick = () => {
     setShowHistory(!showHistory);
   };
-  // const historyOnClick = () => {
-  //   async function alertData() {
-  //     const response = await axios.get(
-  //       `https://api.hipal.life/v1/kitchens/get/AllAlertByWaiter?waiterId=5&businessId=${businessId}&isAlertOn=true`
-  //     );
-  //     const data = await response.data;
-  //     console.log(data);
-  //     setData(data);
-  //   }
-  //   alertData();
-  //   setShowHistory(!showHistory);
-  // };
   useEffect(() => {
-    onAlertData();
-    offAlertData();
-  },[])
+    onAlertData()
+    const intervalId = setInterval(() => {
+      onAlertData();
+    }, 15000); // 15 seconds interval
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+  async function onAlertData() {
+    const response = await axios.get(
+      `https://api.hipal.life/v1/kitchens/get/AllAlertByWaiter?staffId=${userDetail?.id}&businessId=${businessId}&isAlertOn=true&zoneId=${zoneId}`
+    );
+    const data = await response.data;
+    setData(data);
+
+    if (data.length > previousLengthRef.current) {
+      const sound = new Howl({
+        src: ['/sounds/hotel_bell.mp3'],
+        autoplay: true,
+      });
+
+      sound.play();
+    }
+
+    previousLengthRef.current = data.length;
+  }
+
 
   const popOver = (search = "") => {
-    if (search.length > 0) {
+    if (search.length > 0) { 
       if (!searchOpen) {
         setSearchOpen(true);
       }
@@ -128,35 +150,28 @@ function Alert() {
       ele?.status?.toLowerCase().includes(search.toLowerCase())
   );
 
-  async function onAlertData() {
-    const response = await axios.get(
-      `https://api.hipal.life/v1/kitchens/get/AllAlertByWaiter?staffId=${userDetail?.id}&businessId=${businessId}&isAlertOn=true&zoneId=${zoneId}`
-    );
-    const data = await response.data;
-    console.log(data)
-    setData(data);
-  }
+ 
 
   async function offAlertData() {
     const response = await axios.get(
       `https://api.hipal.life/v1/kitchens/get/AllAlertByWaiter?staffId=${userDetail?.id}&businessId=${businessId}&isAlertOn=false&zoneId=${zoneId}`
     );
-    const data = await response.data;
-    console.log(data)
-    setHistoryData(data);
+    const historyData = await response.data;
+    console.log("thhis is my history data",historyData)
+    setHistoryData(historyData);
   }
 
   return (
     <div className={` bg-[#f5f5f5] min-h-screen pb-20 relative`}>
-     <Header businessId={businessId} zoneId={zoneId}>
-  <Image
-    className="mr-6"
-    width={68}
-    height={25}
-    src={HiPalLogo}
-    alt="Hi Table Logo"
-  />
-</Header>
+      <Header businessId={businessId} zoneId={zoneId}>
+        <Image
+          className="mr-6"
+          width={68}
+          height={25}
+          src={HiPalLogo}
+          alt="Hi Table Logo"
+        />
+      </Header>
       <div className="sticky top-0 z-50 bg-[#f5f5f5]">
         <div className="flex justify-between pb-6">
           <div
@@ -295,7 +310,7 @@ function Alert() {
               className="mx-6 relative bg-gray-200 h-[4.75rem] rounded-xl"
             >
               <div className="font-bold capitalize text-[#002D4B] text-[1rem] leading-[1.25rem] absolute left-4 top-4">
-                {ele?.tableName ? "" : "T001"}
+                {ele?.tableName}
               </div>
               <div className="font-normal text-[#002D4B]/40 text-[0.875rem] leading-[1rem] absolute right-4 top-4">
                 {ele?.time}
