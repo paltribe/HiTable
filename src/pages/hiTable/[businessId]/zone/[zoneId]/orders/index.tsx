@@ -8,6 +8,7 @@ import axios from "axios";
 import CookingAnimation from "@/components/atoms/animation";
 import { IOrder } from "@/components/types/hiTableData";
 import { useLogin } from "@/components/store/useLogin";
+import { PAGE_TYPES, routePaths } from "@/components/utils/routes";
 
 function Orders() {
   const [data, setData] = useState<IOrder[]>([]);
@@ -24,7 +25,6 @@ function Orders() {
   }, []);
 
   // const handleAnimationComplete = () => {
-  //   router.back();
   //   result();
   // };
 
@@ -34,13 +34,18 @@ function Orders() {
         `https://api.hipal.life/v1/kitchens/waiterKot/update/${id}`
       );
       setOrderAccepted(true);
+      result();
+      // setTimeout(() => {
+      //   window.history.back();
+      // }, 500);
     } catch (error) {
       console.error("Failed to update order status:", error);
     }
   };
-  const rejectOrder = async (id: string) => {
+  const rejectOrder = async (id: string) => { 
     try {
       await axios.put(`https://api.hipal.life/v1/kitchens/reject/Order/${id}`);
+      result();
     } catch (error) {
       console.error("Failed to update order status:", error);
     }
@@ -72,6 +77,14 @@ function Orders() {
       <div className=" ml-6 mt-8 font-bold capitalize text-[#002D4B] text-[1rem] leading-[1.25rem]">
         Orders
       </div>
+      {/* {isOrderAccepted ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <CookingAnimation
+            data={data}
+            onAnimationComplete={handleAnimationComplete}
+          />
+        </div>
+      ) : null} */}
       <div>
         {data.map((ele) => (
           <div
